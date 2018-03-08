@@ -58,12 +58,57 @@ https://stackoverflow.com/questions/28517400/matplotlib-binary-heat-plot?noredir
 """
 Kmeans clustering
 """
-coordinates = np.argwhere(roll)
-coordinates_labels = KMeans(2).fit_predict(coordinates)
+# coordinates = np.asarray(np.nonzero(roll))
+# coordinates_labels = KMeans(2).fit_predict(coordinates)
 
-colors = ['r', 'b']
-coordinate_colors = [colors[y] for y in coordinates_labels]
+# colors = ['r', 'b']
+# coordinate_colors = [colors[y] for y in coordinates_labels]
+# # quick hack to get list of x and y from list of tuples (x,y)
+# x, y = zip(*coordinates)
+# plt.scatter(x, y, c=coordinate_colors)
+# plt.show()
+
+"""
+Sliding window clustering
+
+use time distance to determine if in cluster or not
+"""
+
+side_roll = roll.T
+prev_end = 0
+BOUND = 10
+i = 0
+labels = []
+cluster = 1
+while i < len(side_roll)-1:
+    while not side_roll[i].any() and i < len(side_roll)-1:
+        labels.append(0)
+        i += 1
+    if not i < len(side_roll) - 1:
+        break
+    # at the start of a cluster
+    cluster_start = i
+    prev_note = i
+    # print('start of cluster at', i)
+    while (side_roll[i].any() or i - prev_note < BOUND) and \
+            i < len(side_roll) - 1:
+            if side_roll[i].any():
+                prev_note = i
+            labels.append(cluster)
+            i += 1
+    # print('cluster ended at', i)
+    cluster += 1
+
+
+# plot the clusters
+colors = ['k', 'r', 'g', 'b']
+coordinates = np.asarray(np.nonzero(side_roll)).T
+coordinate_colors = []
+
+# for each note coord, determine the cluster
+for x, y in coordinates:
+    coordinate_colors.append(colors[labels[x]])
 # quick hack to get list of x and y from list of tuples (x,y)
-y, x = zip(*coordinates)
+x, y = zip(*coordinates)
 plt.scatter(x, y, c=coordinate_colors)
 plt.show()
