@@ -4,8 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sklearn.cluster import KMeans
+from sklearn.mixture import BayesianGaussianMixture
 import numpy as np
-import time as time
 
 
 TEST_FILE = "./data/midkar/always_and_forever_bnzo.mid"
@@ -37,7 +37,7 @@ roll = PrettyMIDI(PREPROCESS_DIR + FILE_NAME).get_piano_roll()
 # TODO: write generalized truncation function, look at min and max pitches
 # and truncate there
 print("original roll shape", roll.shape)
-roll = roll[40:70, 2000:2500]
+roll = roll[40:70, :]
 print("truncated to", roll.shape)
 
 """
@@ -58,13 +58,14 @@ https://stackoverflow.com/questions/28517400/matplotlib-binary-heat-plot?noredir
 """
 Kmeans clustering
 """
-# coordinates = np.asarray(np.nonzero(roll))
-# coordinates_labels = KMeans(2).fit_predict(coordinates)
+# coordinates = np.asarray(np.nonzero(roll)).T
+# print(coordinates.shape)
+# coordinates_labels = KMeans(60).fit_predict(coordinates)
 
-# colors = ['r', 'b']
-# coordinate_colors = [colors[y] for y in coordinates_labels]
+# colors = ['r', 'g', 'b']
+# coordinate_colors = [colors[y % len(colors)] for y in coordinates_labels]
 # # quick hack to get list of x and y from list of tuples (x,y)
-# x, y = zip(*coordinates)
+# y, x = zip(*coordinates)
 # plt.scatter(x, y, c=coordinate_colors)
 # plt.show()
 
@@ -76,22 +77,21 @@ use time distance to determine if in cluster or not
 
 side_roll = roll.T
 prev_end = 0
-BOUND = 10
+BOUND = 30
 i = 0
 labels = []
 cluster = 1
-while i < len(side_roll)-1:
-    while not side_roll[i].any() and i < len(side_roll)-1:
+while i < len(side_roll):
+    while i < len(side_roll) and not side_roll[i].any():
         labels.append(0)
         i += 1
-    if not i < len(side_roll) - 1:
+    if not i < len(side_roll):
         break
     # at the start of a cluster
     cluster_start = i
     prev_note = i
     # print('start of cluster at', i)
-    while (side_roll[i].any() or i - prev_note < BOUND) and \
-            i < len(side_roll) - 1:
+    while i < len(side_roll) and (side_roll[i].any() or i - prev_note < BOUND):
             if side_roll[i].any():
                 prev_note = i
             labels.append(cluster)
@@ -101,14 +101,27 @@ while i < len(side_roll)-1:
 
 
 # plot the clusters
-colors = ['k', 'r', 'g', 'b']
+colors = ['r', 'g', 'b']
 coordinates = np.asarray(np.nonzero(side_roll)).T
 coordinate_colors = []
 
 # for each note coord, determine the cluster
 for x, y in coordinates:
-    coordinate_colors.append(colors[labels[x]])
+    # print(x)
+    coordinate_colors.append(colors[labels[x] % len(colors)])
 # quick hack to get list of x and y from list of tuples (x,y)
 x, y = zip(*coordinates)
 plt.scatter(x, y, c=coordinate_colors)
 plt.show()
+
+"""
+Gaussian Mixture Models
+"""
+# coordinates = np.asarray(np.nonzero(roll)).T
+# labels = BayesianGaussianMixture(60).fit(coordinates).predict(coordinates)
+# colors = ['r', 'g', 'b']
+# coordinate_colors = [colors[y % len(colors)] for y in labels]
+# # quick hack to get list of x and y from list of tuples (x,y)
+# y, x = zip(*coordinates)
+# plt.scatter(x, y, c=coordinate_colors)
+# plt.show()
