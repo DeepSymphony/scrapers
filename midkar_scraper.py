@@ -8,7 +8,8 @@ import os
 os.makedirs("./data/midkar", exist_ok=True)
 
 base = "http://midkar.com/jazz/"
-page_nums = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11",    "12", "13"]
+page_nums = ["01", "02", "03", "04", "05", "06", "07", "08", "09",
+             "10", "11", "12", "13"]
 
 for page_num in page_nums:
     url = "{}jazz_{}.html".format(base, page_num)
