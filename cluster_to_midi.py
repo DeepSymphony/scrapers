@@ -1,9 +1,5 @@
 """
-Utility function for converting an audio file
-to a pretty_midi.PrettyMIDI object. Note that this method is nowhere close
-to the state-of-the-art in automatic music transcription.
-This just serves as a fun example for rough
-transcription which can be expanded on for anyone motivated.
+This script converts pickled piano rolls back into midi.
 """
 from __future__ import division
 import numpy as np
@@ -14,6 +10,7 @@ import pickle
 
 PICKLE_PATH = "preprocess/midkar/pickle/"
 OUTPUT_PATH = "output/midkar/"
+
 
 def piano_roll_to_pretty_midi(piano_roll, fs=100, program=0):
     '''Convert a Piano Roll array into a PrettyMidi object
@@ -75,7 +72,7 @@ def main():
             with open(PICKLE_PATH + file_name, "rb") as f:
                 roll = pickle.load(f)
                 # stack pitch space rows on top and bottom
-                print(roll.shape)
+                # print(roll.shape)
                 midi = piano_roll_to_pretty_midi(roll, fs=400)
                 midi.write(OUTPUT_PATH + file_name[:-7] + ".mid")
 

@@ -8,6 +8,12 @@ from sklearn.mixture import BayesianGaussianMixture
 import numpy as np
 import pickle
 
+"""
+This script takes in the raw MIDI data and tries to divid up the MIDI track
+into "bars" or clusters. Currently uses the sliding window algorithm which
+looks at the space between notes to determine clustering.
+"""
+
 MIDI_PATH = "./data/midkar/always_and_forever_bnzo.mid"
 MIDI_NAME = "always_and_forever_bnzo.mid"
 PREPROCESS_DIR = "preprocess/midkar/"
@@ -48,14 +54,8 @@ class Preprocessor(object):
         # now we have a midi file with only the melody track
         # use Pretty Midi to extract the piano roll into a 2d numpy array
         # roll = (PITCH_SPACE x ROLL_LENGTH)
-        roll = PrettyMIDI(PREPROCESS_MIDI_DIR + self.midi_name).get_piano_roll(fs=400)
-        # we need to truncate the roll vertically since majority is empty space
-        # TODO: write truncation function, look at min and max pitches
-        # and truncate there
-        print("original roll shape", roll.shape)
-        # roll = roll[40:70, :]
-        print("truncated to", roll.shape)
-        self.roll = roll
+        self.roll = PrettyMIDI(
+            PREPROCESS_MIDI_DIR + self.midi_name).get_piano_roll(fs=400)
 
     def visualize_roll(self):
         """
