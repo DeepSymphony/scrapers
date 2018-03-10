@@ -98,13 +98,13 @@ class Preprocessor(object):
         side_roll = self.roll.T
         BOUND = 30
         i = 0
-        labels = []
+        self.labels = []
         # list of tuples of start and ends of clusters
         clusters = []
         cluster = 1
         while i < len(side_roll):
             while i < len(side_roll) and not side_roll[i].any():
-                labels.append(0)
+                self.labels.append(0)
                 i += 1
             if not i < len(side_roll):
                 break
@@ -115,7 +115,7 @@ class Preprocessor(object):
                                           BOUND):
                     if side_roll[i].any():
                         prev_note = i
-                    labels.append(cluster)
+                    self.labels.append(cluster)
                     i += 1
             print('cluster_{} from {} to {} with length {}'.format(cluster,     
                   cluster_start, i, i - cluster_start))
