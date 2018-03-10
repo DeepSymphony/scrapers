@@ -3,9 +3,9 @@ from pretty_midi import PrettyMIDI
 import os
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from sklearn.cluster import KMeans
-from sklearn.mixture import BayesianGaussianMixture
-import numpy as np
+# from sklearn.cluster import KMeans
+# from sklearn.mixture import BayesianGaussianMixture
+# import numpy as np
 import pickle
 
 """
@@ -15,7 +15,6 @@ looks at the space between notes to determine clustering.
 """
 
 MIDI_PATH = "./data/midkar/always_and_forever_bnzo.mid"
-MIDI_NAME = "always_and_forever_bnzo.mid"
 PREPROCESS_DIR = "preprocess/midkar/"
 PREPROCESS_MIDI_DIR = "preprocess/midkar/midi/"
 PREPROCESS_PICKLE_DIR = "preprocess/midkar/pickle/"
@@ -176,57 +175,6 @@ Kmeans clustering
 # plt.scatter(x, y, c=coordinate_colors)
 # plt.show()
 
-"""
-Sliding window clustering
-
-use time distance to determine if in cluster or not
-"""
-
-# side_roll = roll.T
-# prev_end = 0
-# BOUND = 30
-# i = 0
-# labels = []
-# # list of tuples of start and ends of clusters
-# clusters = []
-# cluster = 1
-# while i < len(side_roll):
-#     while i < len(side_roll) and not side_roll[i].any():
-#         labels.append(0)
-#         i += 1
-#     if not i < len(side_roll):
-#         break
-#     # at the start of a cluster
-#     cluster_start = i
-#     prev_note = i
-#     print('start of cluster at', i)
-#     while i < len(side_roll) and (side_roll[i].any() or i - prev_note < BOUND):
-#             if side_roll[i].any():
-#                 prev_note = i
-#             labels.append(cluster)
-#             i += 1
-#     print('cluster ended at', i)
-#     cluster += 1
-#     clusters.append((cluster_start, i))
-
-# for start, end in clusters:
-#     MIDI_NAME = '{}_{}_{}.pickle'.format(MIDI_NAME, start, end)
-#     pickle_cluster(start, end, MIDI_NAME)
-
-# # plot the clusters
-# colors = ['r', 'g', 'b']
-# coordinates = np.asarray(np.nonzero(side_roll)).T
-# coordinate_colors = []
-
-# # for each note coord, determine the cluster
-# for x, y in coordinates:
-#     # print(x)
-#     coordinate_colors.append(colors[labels[x] % len(colors)])
-# # quick hack to get list of x and y from list of tuples (x,y)
-# x, y = zip(*coordinates)
-# plt.scatter(x, y, c=coordinate_colors)
-# plt.show()
-
 
 """
 Gaussian Mixture Models
@@ -239,11 +187,3 @@ Gaussian Mixture Models
 # y, x = zip(*coordinates)
 # plt.scatter(x, y, c=coordinate_colors)
 # plt.show()
-
-
-# def pickle_cluster(start, end, MIDI_NAME):
-#     start, end = cluster_start_end
-#     cluster = roll[:, start:end]
-#     with open(PREPROCESS_PICKLE_DIR + '/' + MIDI_NAME, 'wb') as f:
-#         # Pickle the 'data' dictionary using the highest protocol available.
-#         pickle.dump(cluster, f)
