@@ -104,7 +104,7 @@ class Preprocessor(object):
         """
         # make the roll TIME x PITCH so we can traverse through TIME dimension
         side_roll = self.roll.T
-        BOUND = 30
+        BOUND = 50
         i = 0
         self.labels = []
         # list of tuples of start and ends of clusters
