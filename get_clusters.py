@@ -1,15 +1,16 @@
 from mido import MidiFile
+import pretty_midi
 from pretty_midi import PrettyMIDI
 import os
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 # from sklearn.cluster import KMeans
 # from sklearn.mixture import BayesianGaussianMixture
-# import numpy as np
+import numpy as np
 import pickle
 
 """
-This script takes in the raw MIDI data and tries to divid up the MIDI track
+This script takes in the raw MIDI data and tries to divide up the MIDI track
 into "bars" or clusters. Currently uses the sliding window algorithm which
 looks at the space between notes to determine clustering.
 """
@@ -18,6 +19,7 @@ MIDI_PATH = "./data/midkar/always_and_forever_bnzo.mid"
 PREPROCESS_DIR = "preprocess/midkar/"
 PREPROCESS_MIDI_DIR = "preprocess/midkar/midi/"
 PREPROCESS_PICKLE_DIR = "preprocess/midkar/pickle/"
+OUTPUT_PATH = "output/midkar/"
 
 
 class Preprocessor(object):
@@ -28,12 +30,15 @@ class Preprocessor(object):
         os.makedirs(PREPROCESS_DIR, exist_ok=True)
         os.makedirs(PREPROCESS_MIDI_DIR, exist_ok=True)
         os.makedirs(PREPROCESS_PICKLE_DIR, exist_ok=True)
+        os.makedirs(OUTPUT_PATH, exist_ok=True)
+
         self.roll = None
         self.labels = None
         self.coordinates = None
         self.clusters = None
         self.midi_path = None
         self.midi_name = None
+        self.program = None
 
     def load_melody_roll(self, midi_path, melody_track):
         """
@@ -53,8 +58,12 @@ class Preprocessor(object):
         # now we have a midi file with only the melody track
         # use Pretty Midi to extract the piano roll into a 2d numpy array
         # roll = (PITCH_SPACE x ROLL_LENGTH)
-        self.roll = PrettyMIDI(
-            PREPROCESS_MIDI_DIR + self.midi_name).get_piano_roll(fs=400)
+        midi_data = PrettyMIDI(PREPROCESS_MIDI_DIR + self.midi_name)
+        # get the instrument of the midi, should only be one melody track!
+        assert len(midi_data.instruments) == 1
+        print("instrument", midi_data.instruments)
+        self.program = midi_data.instruments[0].program
+        self.roll = midi_data.get_piano_roll(fs=400)
 
     def visualize_roll(self):
         """
@@ -151,6 +160,70 @@ class Preprocessor(object):
         with open(pickle_path, 'wb') as f:
             pickle.dump(cluster, f)
 
+    def pickles_to_midi(self):
+        """
+        converts pickled clusters to midi outputs for listening
+        """
+        for file_name in os.listdir(PREPROCESS_PICKLE_DIR):
+            if file_name[-7:] == ".pickle":
+                # print(PICKLE_PATH+file_name)
+                with open(PREPROCESS_PICKLE_DIR + file_name, "rb") as f:
+                    roll = pickle.load(f)
+                    midi = self.piano_roll_to_pretty_midi(
+                        roll, fs=400, program=self.program)
+                    midi.write(OUTPUT_PATH + file_name[:-7] + ".mid")
+
+    def piano_roll_to_pretty_midi(self, piano_roll, fs=100, program=0):
+        '''Convert a Piano Roll array into a PrettyMidi object
+        with a single instrument.
+        Parameters
+        ----------
+        piano_roll : np.ndarray, shape=(128,frames), dtype=int
+            Piano roll of one instrument
+        fs : int
+            Sampling frequency of the columns, i.e. each column is spaced apart
+            by ``1./fs`` seconds.
+        program : int
+            The program number of the instrument.
+        Returns
+        -------
+        midi_object : pretty_midi.PrettyMIDI
+            A pretty_midi.PrettyMIDI class instance describing
+            the piano roll.
+        '''
+        notes, frames = piano_roll.shape
+        pm = pretty_midi.PrettyMIDI()
+        instrument = pretty_midi.Instrument(program=program)
+
+        # pad 1 column of zeros so we can acknowledge inital and ending events
+        piano_roll = np.pad(piano_roll, [(0, 0), (1, 1)], 'constant')
+
+        # use changes in velocities to find note on / note off events
+        velocity_changes = np.nonzero(np.diff(piano_roll).T)
+
+        # keep track on velocities and note on times
+        prev_velocities = np.zeros(notes, dtype=int)
+        note_on_time = np.zeros(notes)
+
+        for time, note in zip(*velocity_changes):
+            # use time + 1 because of padding above
+            velocity = piano_roll[note, time + 1]
+            time = time / fs
+            if velocity > 0:
+                if prev_velocities[note] == 0:
+                    note_on_time[note] = time
+                    prev_velocities[note] = velocity
+            else:
+                pm_note = pretty_midi.Note(
+                    velocity=prev_velocities[note],
+                    pitch=note,
+                    start=note_on_time[note],
+                    end=time)
+                instrument.notes.append(pm_note)
+                prev_velocities[note] = 0
+        pm.instruments.append(instrument)
+        return pm
+
 
 if __name__ == '__main__':
     pp = Preprocessor()
@@ -158,6 +231,7 @@ if __name__ == '__main__':
     pp.load_melody_roll(MIDI_PATH, melody_track)
     pp.cluster()
     pp.pickle_all_clusters()
+    pp.pickles_to_midi()
     # pp.visualize_roll()
     # plt.show()
 
