@@ -24,7 +24,7 @@ are polite scrapers!
 # Clustering / Track Segmentation
 Now that we scraped the dataset, it's time to find "beats" or "phrases" of
 music within a MIDI track. We use a sliding window algorithm to break a track
-up into multiple tracks. Run `python3 data_to_cluster.py` to cluster a 
+up into multiple tracks. Run `python3 get_clusters.py` to cluster a 
 **single** MIDI track **given a melody track id**. This needs to be fixed in the
 future to cluster multiple MIDI tracks with melody track id labels. Dumps all
 pickled clusters into `preprocess/midkar/pickle` and isolated melody MIDI into
