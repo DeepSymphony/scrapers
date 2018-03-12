@@ -31,6 +31,5 @@ pickled clusters into `preprocess/midkar/pickle` and isolated melody MIDI into
 `preprocess/midkar/melody`.
 
 # Cluster Analysis
-We can listen to the clusters by creating MIDI files out of the clusters by
-running `python3 cluster_to_midi.py`. This will read from a folder containing
+After clustering, the script will read from the folder containing
 pickled files and convert them all into MIDI files at `output/midkar`.
